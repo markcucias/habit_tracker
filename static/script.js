@@ -42,14 +42,44 @@ document.addEventListener("DOMContentLoaded", function () {
             const habits = data.habits;
             listContainer.innerHTML = "";
             habits.forEach(habit => {
+                // Create the list item (one row in the habit list)
                 const element = document.createElement("li");
-                element.textContent = habit;
+                element.className = "list-group-item"; // base style
 
-                const feedback = document.createElement("span");
-                feedback.style.marginLeft = "10px";
+                // Create the inner row: habit text + button in one line
+                const row = document.createElement("div");
+                row.className = "d-flex justify-content-between align-items-center";
 
+                // Create the habit text span
+                const habitText = document.createElement("span");
+                habitText.textContent = habit;
+                habitText.className = "text-capitalize"; // optional, capitalizes habit
+
+                // Create the Done button
                 const btn = document.createElement("button");
                 btn.textContent = "Done!";
+                btn.className = "btn btn-outline-success btn-sm";
+
+                // Add habit text and button to row
+                row.appendChild(habitText);
+                row.appendChild(btn);
+
+                // Add row to list item
+                element.appendChild(row);
+
+                // Create the feedback span (goes below the row)
+                const feedback = document.createElement("div");
+                feedback.style.height = "20px";
+                feedback.style.marginTop = "4px";
+                feedback.style.fontSize = "0.9rem";
+                feedback.style.textAlign = "right";
+
+                // Add feedback span to list item
+                element.appendChild(feedback);
+
+                // Add full list item to the container
+                listContainer.appendChild(element);
+
                 btn.addEventListener("click", function () {
                    fetch("http://127.0.0.1:5000/checkin", {
                         method: "POST",
@@ -65,7 +95,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         }, 2500);
                         } else {
                             return response.json().then( data => {
-                                feedback.textContent = data.error || (habit + " is already completed for today");
+                                feedback.textContent = data.error || "Already done";
                                 feedback.style.color = "red";
                                 setTimeout(() => {
                                     feedback.textContent = "";
@@ -76,9 +106,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     });
                 });
 
-                element.appendChild(btn);
-                element.appendChild(feedback);
-                listContainer.appendChild(element);
+                  listContainer.appendChild(element);
             });
         })
     }
