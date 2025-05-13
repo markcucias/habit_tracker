@@ -1,39 +1,10 @@
 document.addEventListener("DOMContentLoaded", function () {
-  const form = document.getElementById("habitForm");
-  const input = document.getElementById("habitInput");
-  const listContainer = document.getElementById("habitList");
-  const message = document.getElementById("message");
+    const form = document.getElementById("habitForm");
+    const input = document.getElementById("habitInput");
+    const listContainer = document.getElementById("habitList");
+    const message = document.getElementById("message");
 
-  form.addEventListener("submit", function (event) {
-    event.preventDefault(); // prevents page reload
 
-    const habit = input.value.trim().toLowerCase();
-    console.log("Submitted habit:", habit);
-    const response = fetch("http://127.0.0.1:5000/habit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({"name": habit})
-    })
-    .then( response => {
-        if (response.ok) {
-        message.textContent = "Habit added!";
-        message.style.color = "green";
-        setTimeout(() => {
-            message.textContent = "";
-        }, 2500)
-        load_habits();
-        } else {
-            return response.json().then( data => {
-                message.textContent = data.error || "Something went wrong";
-                message.style.color = "red";
-                setTimeout(() => {
-                message.textContent = "";
-            }, 2500)
-            });
-        }
-
-    });
-    input.value = "";
 
     function load_habits() {
         fetch("http://127.0.0.1:5000/habit", {method: "GET"})
@@ -111,5 +82,166 @@ document.addEventListener("DOMContentLoaded", function () {
         })
     }
 
+
+    document.getElementById("reload").addEventListener("click", function (event) {
+        event.preventDefault();
+        load_habits();
+        load_all_checkin();
+      });
+
+    function load_checkin_for_date(date) {
+        fetch("http://127.0.0.1:5000/checkin", { method: "GET" })
+          .then(response => response.json())
+          .then(data => {
+            const history = document.getElementById("checkinHistory");
+            history.innerHTML = "";
+      
+            if (!data[date]) {
+              history.textContent = "No check-ins for this date.";
+              return;
+            }
+      
+            const habits = data[date];
+      
+            // Create table
+            const table = document.createElement("table");
+            table.className = "table table-bordered";
+      
+            // Table header
+            const thead = document.createElement("thead");
+            const headerRow = document.createElement("tr");
+      
+            const dateHeader = document.createElement("th");
+            dateHeader.textContent = "Date";
+      
+            const habitsHeader = document.createElement("th");
+            habitsHeader.textContent = "Habits Completed";
+      
+            headerRow.appendChild(dateHeader);
+            headerRow.appendChild(habitsHeader);
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+      
+            // Table body
+            const tbody = document.createElement("tbody");
+            const row = document.createElement("tr");
+      
+            const dateCell = document.createElement("td");
+            dateCell.textContent = date;
+      
+            const habitsCell = document.createElement("td");
+            habitsCell.textContent = habits.join(", ");
+      
+            row.appendChild(dateCell);
+            row.appendChild(habitsCell);
+            tbody.appendChild(row);
+      
+            table.appendChild(tbody);
+            history.appendChild(table);
+          });
+      }
+      
+
+
+    function load_all_checkin() {
+        fetch("http://127.0.0.1:5000/checkin", { method: "GET" })
+          .then(response => response.json())
+          .then(data => {
+            const history = document.getElementById("checkinHistory");
+            history.innerHTML = "";
+      
+            // Create table
+            const table = document.createElement("table");
+            table.className = "table table-bordered";
+      
+            // Table header
+            const thead = document.createElement("thead");
+            const headerRow = document.createElement("tr");
+      
+            const dateHeader = document.createElement("th");
+            dateHeader.textContent = "Date";
+      
+            const habitsHeader = document.createElement("th");
+            habitsHeader.textContent = "Habits Completed";
+      
+            headerRow.appendChild(dateHeader);
+            headerRow.appendChild(habitsHeader);
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+      
+            // Table body
+            const tbody = document.createElement("tbody");
+      
+            Object.keys(data).sort().reverse().forEach(date => {
+              const row = document.createElement("tr");
+      
+              const dateCell = document.createElement("td");
+              dateCell.textContent = date;
+      
+              const habitsCell = document.createElement("td");
+              const habits = data[date];
+              habitsCell.textContent = habits.join(", ");
+      
+              row.appendChild(dateCell);
+              row.appendChild(habitsCell);
+              tbody.appendChild(row);
+            });
+      
+            table.appendChild(tbody);
+            history.appendChild(table);
+          });
+      }
+      
+
+    document.getElementById("dateForm").addEventListener("submit", function (event) {
+        event.preventDefault();
+        const btn = event.submitter.id;
+        if (btn == "custom") {
+            const date = document.getElementById("datePicker").value;
+            if (!date) {
+              alert("Please select a date");
+              return;
+            } 
+            load_checkin_for_date(date);
+        } else if (btn == "all") {
+            load_all_checkin();
+        }
+      });
+
+
+  form.addEventListener("submit", function (event) {
+    event.preventDefault(); // prevents page reload
+
+    const habit = input.value.trim().toLowerCase();
+    console.log("Submitted habit:", habit);
+    const response = fetch("http://127.0.0.1:5000/habit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({"name": habit})
+    })
+    .then( response => {
+        if (response.ok) {
+        message.textContent = "Habit added!";
+        message.style.color = "green";
+        setTimeout(() => {
+            message.textContent = "";
+        }, 2500)
+        load_habits();
+        load_all_checkin();
+        } else {
+            return response.json().then( data => {
+                message.textContent = data.error || "Something went wrong";
+                message.style.color = "red";
+                setTimeout(() => {
+                message.textContent = "";
+            }, 2500)
+            });
+        }
+
+    });
+    input.value = "";
+
   });
+
+
 });
