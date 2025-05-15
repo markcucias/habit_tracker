@@ -1,5 +1,7 @@
 import sqlite3
 
+
+# Functions for setting up the database and tables
 def get_connection():
     db = sqlite3.connect("habits.db")
     db.execute("PRAGMA foreign_keys = ON")
@@ -28,6 +30,8 @@ def create_tables():
     db.close()
 
 
+
+# Functions for working with (inserting and getting) habits
 def insert_habit(name):
     db = get_connection()
     cur = db.cursor()
@@ -49,6 +53,8 @@ def get_all_habits():
     return rows
 
 
+
+# Functions for working with (inserting and getting) checkins
 def get_habit_by_name(name):
     db = get_connection()
     cur = db.cursor()
@@ -94,3 +100,26 @@ def get_all_checkins():
     checkins = res.fetchall()
     db.close()
     return checkins
+
+
+
+#Delete functions
+def delete_checkins_for_habit(habit_id):
+    db = get_connection()
+    cur = db.cursor()
+    res = cur.execute('''
+        DELETE FROM checkins WHERE habit_id=?
+    ''', (habit_id,))
+    db.commit()
+    db.close()
+    return
+
+def delete_habit(name):
+    db = get_connection()
+    cur = db.cursor()
+    res = cur.execute('''
+        DELETE FROM habits WHERE name=?
+    ''', (name,))
+    db.commit()
+    db.close()
+    return

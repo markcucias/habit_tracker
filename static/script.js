@@ -26,14 +26,27 @@ document.addEventListener("DOMContentLoaded", function () {
                 habitText.textContent = habit;
                 habitText.className = "text-capitalize"; // optional, capitalizes habit
 
+                // Create a group for buttons
+                const buttonGroup = document.createElement("div");
+                buttonGroup.className = "d-flex gap-2";
+
                 // Create the Done button
                 const btn = document.createElement("button");
                 btn.textContent = "Done!";
                 btn.className = "btn btn-outline-success btn-sm";
 
+                // Create the Delete button
+                const dlt = document.createElement("button");
+                dlt.innerHTML = '<i class="bi bi-trash"></i>';
+                dlt.className = "btn btn-outline-success btn-sm";
+
                 // Add habit text and button to row
                 row.appendChild(habitText);
-                row.appendChild(btn);
+
+                buttonGroup.appendChild(btn);
+                buttonGroup.appendChild(dlt);
+
+                row.appendChild(buttonGroup);
 
                 // Add row to list item
                 element.appendChild(row);
@@ -76,6 +89,29 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     });
                 });
+
+                dlt.addEventListener("click", function () {
+                  fetch("http://127.0.0.1:5000/habit", {
+                       method: "DELETE",
+                       headers: { "Content-Type": "application/json" },
+                       body: JSON.stringify({"name": habit})
+                  })
+                  .then( response => {
+                       if (response.ok) {
+                        load_habits();
+                        load_all_checkin();
+                       } else {
+                           return response.json().then( data => {
+                               feedback.textContent = data.error;
+                               feedback.style.color = "red";
+                               setTimeout(() => {
+                                   feedback.textContent = "";
+                               }, 2500);
+                           });
+                       }
+
+                   });
+               });
 
                   listContainer.appendChild(element);
             });

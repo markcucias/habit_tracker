@@ -3,7 +3,7 @@ from collections import defaultdict
 import app
 from flask import Flask, request, jsonify, render_template
 from datetime import datetime
-from db import create_tables, insert_habit, get_all_habits, get_habit_by_name, checkin_exists, insert_checkin, get_all_checkins
+from db import create_tables, insert_habit, get_all_habits, get_habit_by_name, checkin_exists, insert_checkin, get_all_checkins, delete_habit, delete_checkins_for_habit
 
 app = Flask(__name__)
 
@@ -58,6 +58,7 @@ def register_habit():
         "message": f"The habit '{habit}' was checked in successfully for {date}"
     }), 201
 
+
 @app.route("/checkin", methods = ["GET"])
 def retrieve_checkin():
     result = defaultdict(list)
@@ -66,6 +67,26 @@ def retrieve_checkin():
     for date, name in checkins:
         result[date].append(name)
     return jsonify(result), 200
+
+
+
+@app.route("/habit", methods = ["DELETE"])
+def delete_habit_route():
+    data = request.get_json()
+    habit = data.get("name")
+
+    if not habit:
+        return jsonify({"error": "Invalid input: empty habit"}), 400
+    
+    habit_row = get_habit_by_name(habit)
+    if not habit_row:
+        return jsonify({"error": "Habit doesn't exist"}), 404
+    else:
+        habit_id = habit_row[0]
+        delete_checkins_for_habit(habit_id)
+        delete_habit(habit)
+    return jsonify({"message": f"Habit '{habit}' was successfuly deleted"}), 200
+
 
 
 if __name__ == "__main__":
