@@ -3,7 +3,7 @@ from collections import defaultdict
 import app
 from flask import Flask, request, jsonify, render_template
 from datetime import datetime
-from db import create_tables, insert_habit, get_all_habits, get_habit_by_name, checkin_exists, insert_checkin, get_all_checkins, delete_habit, delete_checkins_for_habit
+from db import create_tables, insert_habit, get_all_active_habits, get_habit_by_name, checkin_exists, insert_checkin, get_all_checkins, delete_habit, delete_checkins_for_habit, check_if_deleted, activate_habit
 
 app = Flask(__name__)
 
@@ -13,23 +13,33 @@ app = Flask(__name__)
 def home():
     return render_template("index.html")
 
-@app.route("/habit", methods = ["POST"])
+@app.route("/habit", methods=["POST"])
 def add_habit():
     data = request.get_json()
     new_habit = data.get("name")
     if not new_habit:
         return jsonify({"error": "The habit is invalid (most likely empty)"}), 400
     new_habit = new_habit.strip().lower()
+
+    # Check if habit exists
     if get_habit_by_name(new_habit):
-        return jsonify({"error": "The habit already exists"}), 400
+        # If it exists, check if it was deleted
+        if check_if_deleted(new_habit)[0]:  # unpack (True,) from fetchone
+            activate_habit(new_habit)
+            return jsonify({"message": f"The habit {new_habit} was reactivated successfully"}), 201
+        else:
+            return jsonify({"error": "The habit already exists"}), 400
+
+    # Habit doesn't exist, insert
     insert_habit(new_habit)
     return jsonify({"message": f"The habit {new_habit} was added successfully"}), 201
 
 
 
+
 @app.route("/habit", methods = ["GET"])
 def retrieve_habits():
-    habits = [row[0] for row in get_all_habits()]
+    habits = [row[0] for row in get_all_active_habits()]
     return jsonify({"habits": habits}), 200
 
 
@@ -83,7 +93,6 @@ def delete_habit_route():
         return jsonify({"error": "Habit doesn't exist"}), 404
     else:
         habit_id = habit_row[0]
-        delete_checkins_for_habit(habit_id)
         delete_habit(habit)
     return jsonify({"message": f"Habit '{habit}' was successfuly deleted"}), 200
 

@@ -13,7 +13,8 @@ def create_tables():
     cur.execute('''
         CREATE TABLE IF NOT EXISTS habits(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT UNIQUE NOT NULL
+            name TEXT UNIQUE NOT NULL,
+            deleted BOOLEAN
             );
     ''')
 
@@ -36,17 +37,31 @@ def insert_habit(name):
     db = get_connection()
     cur = db.cursor()
     cur.execute('''
-        INSERT INTO habits(name) values (?);
+        INSERT INTO habits(name, deleted) VALUES (?, FALSE);
     ''', (name,))
     db.commit()
     db.close()
 
 
-def get_all_habits():
+def activate_habit(name):
     db = get_connection()
     cur = db.cursor()
     res = cur.execute('''
-        SELECT name FROM habits;
+        UPDATE habits
+        SET deleted = FALSE
+        WHERE name = ?;
+    ''', (name,))
+    deleted = res.fetchone()
+    db.close()
+    return deleted
+
+
+
+def get_all_active_habits():
+    db = get_connection()
+    cur = db.cursor()
+    res = cur.execute('''
+        SELECT name FROM habits WHERE deleted = FALSE;
     ''')
     rows = res.fetchall()
     db.close()
@@ -65,6 +80,17 @@ def get_habit_by_name(name):
     habit = res.fetchone()
     db.close()
     return habit
+
+def check_if_deleted(name):
+    db = get_connection()
+    cur = db.cursor()
+    res = cur.execute('''
+        SELECT deleted FROM habits
+        WHERE name=?;
+    ''', (name,))
+    deleted = res.fetchone()
+    db.close()
+    return deleted
 
 
 def insert_checkin(habit_id, date):
@@ -118,7 +144,9 @@ def delete_habit(name):
     db = get_connection()
     cur = db.cursor()
     res = cur.execute('''
-        DELETE FROM habits WHERE name=?
+        UPDATE habits
+        SET deleted = TRUE
+        WHERE name = ?;
     ''', (name,))
     db.commit()
     db.close()
