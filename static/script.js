@@ -74,6 +74,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         if (response.ok) {
                         feedback.textContent = "Great job!";
                         feedback.style.color = "green";
+                        load_all_checkin();
                         setTimeout(() => {
                             feedback.textContent = "";
                         }, 2500);
@@ -243,6 +244,22 @@ document.addEventListener("DOMContentLoaded", function () {
             load_all_checkin();
         }
       });
+
+      document.getElementById("clear").addEventListener("click", function (event) {
+        event.preventDefault();
+        fetch("http://127.0.0.1:5000/checkin/clear", {
+            method: "DELETE"
+          })          
+        .then(response => {
+          if (response.ok) {
+            load_habits();
+            load_all_checkin();
+          } else {
+            alert("Something went wrong, please try clearing the history again");
+          }
+        });
+      });
+      
 
 
   form.addEventListener("submit", function (event) {

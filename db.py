@@ -130,12 +130,12 @@ def get_all_checkins():
 
 
 #Delete functions
-def delete_checkins_for_habit(habit_id):
+def delete_checkins():
     db = get_connection()
     cur = db.cursor()
     res = cur.execute('''
-        DELETE FROM checkins WHERE habit_id=?
-    ''', (habit_id,))
+        DELETE FROM checkins
+    ''')
     db.commit()
     db.close()
     return

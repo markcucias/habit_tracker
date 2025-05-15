@@ -3,7 +3,7 @@ from collections import defaultdict
 import app
 from flask import Flask, request, jsonify, render_template
 from datetime import datetime
-from db import create_tables, insert_habit, get_all_active_habits, get_habit_by_name, checkin_exists, insert_checkin, get_all_checkins, delete_habit, delete_checkins_for_habit, check_if_deleted, activate_habit
+from db import create_tables, insert_habit, get_all_active_habits, get_habit_by_name, checkin_exists, insert_checkin, get_all_checkins, delete_habit, delete_checkins, check_if_deleted, activate_habit
 
 app = Flask(__name__)
 
@@ -43,6 +43,25 @@ def retrieve_habits():
     return jsonify({"habits": habits}), 200
 
 
+@app.route("/habit", methods = ["DELETE"])
+def delete_habit_route():
+    data = request.get_json()
+    habit = data.get("name")
+
+    if not habit:
+        return jsonify({"error": "Invalid input: empty habit"}), 400
+    
+    habit_row = get_habit_by_name(habit)
+    if not habit_row:
+        return jsonify({"error": "Habit doesn't exist"}), 404
+    else:
+        habit_id = habit_row[0]
+        delete_habit(habit)
+    return jsonify({"message": f"Habit '{habit}' was successfuly deleted"}), 200
+
+
+
+
 
 @app.route("/checkin", methods = ["POST"])
 def register_habit():
@@ -79,22 +98,11 @@ def retrieve_checkin():
     return jsonify(result), 200
 
 
+@app.route("/checkin/clear", methods = ["DELETE"])
+def clear_checkins():
+    delete_checkins()
+    return jsonify({"message": "The checkin history was successfuly deleted"}), 200
 
-@app.route("/habit", methods = ["DELETE"])
-def delete_habit_route():
-    data = request.get_json()
-    habit = data.get("name")
-
-    if not habit:
-        return jsonify({"error": "Invalid input: empty habit"}), 400
-    
-    habit_row = get_habit_by_name(habit)
-    if not habit_row:
-        return jsonify({"error": "Habit doesn't exist"}), 404
-    else:
-        habit_id = habit_row[0]
-        delete_habit(habit)
-    return jsonify({"message": f"Habit '{habit}' was successfuly deleted"}), 200
 
 
 
