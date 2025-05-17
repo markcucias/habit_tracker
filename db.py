@@ -46,14 +46,14 @@ def insert_habit(name):
 def activate_habit(name):
     db = get_connection()
     cur = db.cursor()
-    res = cur.execute('''
+    cur.execute('''
         UPDATE habits
         SET deleted = FALSE
         WHERE name = ?;
     ''', (name,))
-    deleted = res.fetchone()
+    db.commit()
     db.close()
-    return deleted
+
 
 
 
@@ -67,6 +67,16 @@ def get_all_active_habits():
     db.close()
     return rows
 
+def get_the_db():
+    db = get_connection()
+    cur = db.cursor()
+    res = cur.execute('''
+        SELECT * FROM habits;
+    ''')
+    rows = res.fetchall()
+    db.close()
+    return rows
+
 
 
 # Functions for working with (inserting and getting) checkins
@@ -74,12 +84,13 @@ def get_habit_by_name(name):
     db = get_connection()
     cur = db.cursor()
     res = cur.execute('''
-        SELECT id FROM habits
-        WHERE name=?;
+        SELECT id, deleted FROM habits WHERE name = ?;
     ''', (name,))
     habit = res.fetchone()
     db.close()
-    return habit
+    return habit  # returns (id, deleted) or None
+
+
 
 def check_if_deleted(name):
     db = get_connection()

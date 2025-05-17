@@ -3,7 +3,7 @@ from collections import defaultdict
 import app
 from flask import Flask, request, jsonify, render_template
 from datetime import datetime
-from db import create_tables, insert_habit, get_all_active_habits, get_habit_by_name, checkin_exists, insert_checkin, get_all_checkins, delete_habit, delete_checkins, check_if_deleted, activate_habit
+from db import create_tables, insert_habit, get_all_active_habits, get_habit_by_name, checkin_exists, insert_checkin, get_all_checkins, delete_habit, delete_checkins, check_if_deleted, activate_habit, get_the_db
 
 app = Flask(__name__)
 
@@ -21,26 +21,26 @@ def add_habit():
         return jsonify({"error": "The habit is invalid (most likely empty)"}), 400
     new_habit = new_habit.strip().lower()
 
-    # Check if habit exists
-    if get_habit_by_name(new_habit):
-        # If it exists, check if it was deleted
-        if check_if_deleted(new_habit)[0]:  # unpack (True,) from fetchone
+    habit_info = get_habit_by_name(new_habit)
+    if habit_info:
+        habit_id, deleted = habit_info
+        if deleted:  # Reactivate if it was previously marked deleted
             activate_habit(new_habit)
-            return jsonify({"message": f"The habit {new_habit} was reactivated successfully"}), 201
+            return jsonify({"message": f"The habit '{new_habit}' was reactivated successfully"}), 201
         else:
             return jsonify({"error": "The habit already exists"}), 400
 
-    # Habit doesn't exist, insert
     insert_habit(new_habit)
-    return jsonify({"message": f"The habit {new_habit} was added successfully"}), 201
+    return jsonify({"message": f"The habit '{new_habit}' was added successfully"}), 201
 
 
 
 
-@app.route("/habit", methods = ["GET"])
+@app.route("/habit", methods=["GET"])
 def retrieve_habits():
     habits = [row[0] for row in get_all_active_habits()]
     return jsonify({"habits": habits}), 200
+
 
 
 @app.route("/habit", methods = ["DELETE"])
@@ -108,4 +108,5 @@ def clear_checkins():
 
 if __name__ == "__main__":
     create_tables()
+    print(get_the_db())
     app.run(debug=True)

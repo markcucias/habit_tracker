@@ -71,23 +71,22 @@ document.addEventListener("DOMContentLoaded", function () {
                         body: JSON.stringify({"name": habit})
                    })
                    .then( response => {
+                      return response.json().then( data => {
                         if (response.ok) {
-                        feedback.textContent = "Great job!";
+                        feedback.textContent = data.message || "Great job!";
                         feedback.style.color = "green";
                         load_all_checkin();
                         setTimeout(() => {
                             feedback.textContent = "";
                         }, 2500);
                         } else {
-                            return response.json().then( data => {
-                                feedback.textContent = data.error || "Already done";
-                                feedback.style.color = "red";
-                                setTimeout(() => {
-                                    feedback.textContent = "";
-                                }, 2500);
-                            });
+                          feedback.textContent = data.error || "Already done";
+                          feedback.style.color = "red";
+                          setTimeout(() => {
+                              feedback.textContent = "";
+                          }, 2500);
                         }
-
+                      });
                     });
                 });
 
@@ -167,6 +166,7 @@ document.addEventListener("DOMContentLoaded", function () {
             dateCell.textContent = date;
       
             const habitsCell = document.createElement("td");
+            habitsCell.className = "text-capitalize";
             habitsCell.textContent = habits.join(", ");
       
             row.appendChild(dateCell);
@@ -217,6 +217,7 @@ document.addEventListener("DOMContentLoaded", function () {
       
               const habitsCell = document.createElement("td");
               const habits = data[date];
+              habitsCell.className = "text-capitalize";
               habitsCell.textContent = habits.join(", ");
       
               row.appendChild(dateCell);
@@ -273,8 +274,9 @@ document.addEventListener("DOMContentLoaded", function () {
         body: JSON.stringify({"name": habit})
     })
     .then( response => {
+      return response.json().then(data => {
         if (response.ok) {
-        message.textContent = "Habit added!";
+        message.textContent = data.message || "Habit added";
         message.style.color = "green";
         setTimeout(() => {
             message.textContent = "";
@@ -290,6 +292,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }, 2500)
             });
         }
+      });
 
     });
     input.value = "";
