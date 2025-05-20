@@ -76,6 +76,8 @@ document.addEventListener("DOMContentLoaded", function () {
                         feedback.textContent = data.message || "Great job!";
                         feedback.style.color = "green";
                         load_all_checkin();
+                        load_progress_bar();
+                        load_graph();
                         setTimeout(() => {
                             feedback.textContent = "";
                         }, 2500);
@@ -100,6 +102,7 @@ document.addEventListener("DOMContentLoaded", function () {
                        if (response.ok) {
                         load_habits();
                         load_all_checkin();
+                        load_progress_bar();
                        } else {
                            return response.json().then( data => {
                                feedback.textContent = data.error;
@@ -117,6 +120,74 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         })
     }
+    
+
+    function load_progress_bar() {
+      fetch("http://127.0.0.1:5000/progress", { method: "GET" })
+          .then(response => response.json())
+          .then(data => {
+            const completed = data.completed;
+            const total = data.total;
+            const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+            const progressBar = document.querySelector(".progress-bar");
+
+            // Remove existing color classes
+            progressBar.classList.remove("bg-danger", "bg-warning", "bg-info", "bg-success");
+
+            // Add appropriate color
+            if (percent === 100) {
+              progressBar.classList.add("bg-success");
+            } else if (percent >= 67) {
+              progressBar.classList.add("bg-info");
+            } else if (percent >= 34) {
+              progressBar.classList.add("bg-warning");
+            } else {
+              progressBar.classList.add("bg-danger");
+            }
+            progressBar.style.width = percent + "%";
+            progressBar.textContent = percent + "%";
+          });
+    }
+
+    function load_graph() {
+      fetch("http://127.0.0.1:5000/stats", { method: "GET" })
+        .then(response => response.json())
+        .then(data => {
+          const labels = Object.keys(data).sort(); // dates
+          const values = labels.map(date => data[date]); // count per date
+    
+          const ctx = document.getElementById("progressChart").getContext("2d");
+    
+          // Destroy existing chart if it exists
+          if (window.myChart) {
+            window.myChart.destroy();
+          }
+    
+          window.myChart = new Chart(ctx, {
+            type: "bar",
+            data: {
+              labels: labels,
+              datasets: [{
+                label: "Habits Completed",
+                data: values,
+                backgroundColor: "#0d6efd" // Bootstrap primary color
+              }]
+            },
+            options: {
+              responsive: true,
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  ticks: {
+                    stepSize: 1
+                  }
+                }
+              }
+            }
+          });
+        });
+    }
+    
 
 
     document.getElementById("reload").addEventListener("click", function (event) {
@@ -131,7 +202,6 @@ document.addEventListener("DOMContentLoaded", function () {
           .then(data => {
             const history = document.getElementById("checkinHistory");
             history.innerHTML = "";
-      
             if (!data[date]) {
               history.textContent = "No check-ins for this date.";
               return;
@@ -255,6 +325,7 @@ document.addEventListener("DOMContentLoaded", function () {
           if (response.ok) {
             load_habits();
             load_all_checkin();
+            load_graph();
           } else {
             alert("Something went wrong, please try clearing the history again");
           }
@@ -278,6 +349,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (response.ok) {
         message.textContent = data.message || "Habit added";
         message.style.color = "green";
+        load_progress_bar();
         setTimeout(() => {
             message.textContent = "";
         }, 2500)
@@ -299,5 +371,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   });
 
-
+  load_habits();
+  load_progress_bar();
+  load_graph();
 });

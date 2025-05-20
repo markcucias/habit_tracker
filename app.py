@@ -8,11 +8,16 @@ from db import create_tables, insert_habit, get_all_active_habits, get_habit_by_
 app = Flask(__name__)
 
 
-
+# Home function
 @app.route("/", methods = ["GET"])
 def home():
     return render_template("index.html")
 
+
+
+# Functions for /habit
+
+# POST
 @app.route("/habit", methods=["POST"])
 def add_habit():
     data = request.get_json()
@@ -34,15 +39,13 @@ def add_habit():
     return jsonify({"message": f"The habit '{new_habit}' was added successfully"}), 201
 
 
-
-
+# GET
 @app.route("/habit", methods=["GET"])
 def retrieve_habits():
     habits = [row[0] for row in get_all_active_habits()]
     return jsonify({"habits": habits}), 200
 
-
-
+# DELETE
 @app.route("/habit", methods = ["DELETE"])
 def delete_habit_route():
     data = request.get_json()
@@ -63,6 +66,10 @@ def delete_habit_route():
 
 
 
+
+# Functions for /checkin
+
+# POST
 @app.route("/checkin", methods = ["POST"])
 def register_habit():
     data = request.get_json()
@@ -88,6 +95,7 @@ def register_habit():
     }), 201
 
 
+# GET
 @app.route("/checkin", methods = ["GET"])
 def retrieve_checkin():
     result = defaultdict(list)
@@ -98,11 +106,38 @@ def retrieve_checkin():
     return jsonify(result), 200
 
 
+# DELETE
 @app.route("/checkin/clear", methods = ["DELETE"])
 def clear_checkins():
     delete_checkins()
     return jsonify({"message": "The checkin history was successfuly deleted"}), 200
 
+
+
+
+
+# Function for the progress bar
+@app.route("/progress", methods = ["GET"])
+def get_progress():
+    habits = [row[0] for row in get_all_active_habits()]
+    active_amount = len(habits)
+
+    date = datetime.today().strftime('%Y-%m-%d')
+    checkins = get_all_checkins()
+    checkins_for_today = [[checkin[0], checkin[1]] for checkin in checkins if (checkin[0]==date and checkin[1] in habits)]
+    checkin_amount = len(checkins_for_today)
+    return jsonify({"total": active_amount, "completed": checkin_amount}), 200
+
+
+@app.route("/stats", methods=["GET"])
+def get_stats():
+    checkins = get_all_checkins()
+    stats = defaultdict(int)
+
+    for date, _ in checkins:
+        stats[date] += 1
+
+    return jsonify(dict(stats)), 200
 
 
 
