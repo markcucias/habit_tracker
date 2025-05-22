@@ -14,7 +14,10 @@ def create_tables():
         CREATE TABLE IF NOT EXISTS habits(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT UNIQUE NOT NULL,
-            deleted BOOLEAN
+            user_id INTEGER NOT NULL,
+            deleted BOOLEAN,
+            FOREIGN KEY (user_id) REFERENCES users(id),
+            UNIQUE (name, user_id)
             );
     ''')
 
@@ -22,13 +25,49 @@ def create_tables():
         CREATE TABLE IF NOT EXISTS checkins(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             habit_id INTEGER NOT NULL,
+            user_id INTEGER NOT NULL,
             date TEXT NOT NULL,
-            FOREIGN KEY (habit_id) REFERENCES habits(id)
+            FOREIGN KEY (habit_id) REFERENCES habits(id),
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        );
+    ''')
+
+    cur.execute('''
+        CREATE TABLE IF NOT EXISTS users(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT UNIQUE NOT NULL        
         );
     ''')
 
     db.commit()
     db.close()
+
+
+
+
+# Functions for working with (inserting and getting) users
+def insert_user(name):
+    db = get_connection()
+    cur = db.cursor()
+    cur.execute('''
+        INSERT INTO users(name) VALUES (?);
+    ''', (name,))
+    db.commit()
+    db.close()
+
+
+def get_users():
+    db = get_connection()
+    cur = db.cursor()
+    res = cur.execute('''
+        SELECT name FROM users;
+    ''')
+    rows = res.fetchall()
+    db.close()
+    return rows
+
+
+
 
 
 
@@ -67,19 +106,10 @@ def get_all_active_habits():
     db.close()
     return rows
 
-def get_the_db():
-    db = get_connection()
-    cur = db.cursor()
-    res = cur.execute('''
-        SELECT * FROM habits;
-    ''')
-    rows = res.fetchall()
-    db.close()
-    return rows
 
 
 
-# Functions for working with (inserting and getting) checkins
+# Helper functions for checkins, user etc.
 def get_habit_by_name(name):
     db = get_connection()
     cur = db.cursor()
@@ -89,6 +119,17 @@ def get_habit_by_name(name):
     habit = res.fetchone()
     db.close()
     return habit  # returns (id, deleted) or None
+
+
+def get_user_by_name(name):
+    db = get_connection()
+    cur = db.cursor()
+    res = cur.execute('''
+        SELECT id FROM users WHERE name = ?;
+    ''', (name,))
+    user = res.fetchone()
+    db.close()
+    return user
 
 
 
