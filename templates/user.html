@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>Select User - Habit Tracker</title>
@@ -16,32 +17,36 @@
       height: 100vh;
       padding: 20px;
     }
+
     .card {
       width: 100%;
       max-width: 450px;
     }
+
     .user-button {
       text-transform: capitalize;
     }
   </style>
 </head>
+
 <body class="d-flex flex-column justify-content-center align-items-center min-vh-100 bg-light">
-    <h1 class="mb-4 text-center">Welcome to Habit Tracker</h1>
+  <h1 class="mb-4 text-center">Welcome to Habit Tracker</h1>
 
-    <div class="card shadow-sm p-4" style="width: 100%; max-width: 400px;">
-        <h5 class="mb-3 text-center">Select your user</h5>
-        <div id="userList" class="d-grid gap-2 mb-4">
-            <!-- Buttons for each user will go here -->
-        </div>
-
-        <form id="newUserForm" class="d-flex flex-column gap-2">
-            <input id="newUserInput" type="text" class="form-control" placeholder="Enter new user name">
-            <button type="submit" class="btn btn-primary">Create</button>
-            <div id="message" class="mt-2 text-center small"></div> <!-- Add this line -->
-        </form>
-        
+  <div class="card shadow-sm p-4" style="width: 100%; max-width: 400px;">
+    <h5 class="mb-3 text-center">Select your user</h5>
+    <div id="userList" class="d-grid gap-2 mb-4">
+      <!-- Buttons for each user will go here -->
     </div>
-</body>  
+
+    <form id="newUserForm" class="d-flex flex-column gap-2">
+      <input id="newUserInput" type="text" class="form-control" placeholder="Enter new user name">
+      <button type="submit" class="btn btn-primary">Create</button>
+      <div id="message" class="mt-2 text-center small"></div> <!-- Add this line -->
+    </form>
+
+  </div>
+</body>
+
 </html>
 
 
