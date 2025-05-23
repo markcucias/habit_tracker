@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
     const userList = document.getElementById("userList");
     const userInput = document.getElementById("newUserInput");
+    const userPassword = document.getElementById("newUserPassword");
     const form = document.getElementById("newUserForm");
     const message = document.getElementById("message");
 
@@ -59,21 +60,21 @@ document.addEventListener("DOMContentLoaded", function () {
                         location.href = "http://127.0.0.1:5000/home";
                     });
 
-                    //     dlt.addEventListener("click", function () {
-                    //       fetch("http://127.0.0.1:5000/user", {
-                    //            method: "DELETE",
-                    //            headers: { "Content-Type": "application/json" },
-                    //            body: JSON.stringify({"name": user})
-                    //       })
-                    //       .then( response => {
-                    //            if (response.ok) {
+                    dlt.addEventListener("click", function () {
+                        fetch("http://127.0.0.1:5000/user", {
+                            method: "DELETE",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ "user":  user})
+                        })
+                            .then(response => {
+                                if (response.ok) {
+                                    load_users();
+                                } else {
+                                    alert("Something went wrong, please try clearing the history again");
+                                }
 
-                    //            } else {
-
-                    //            }
-
-                    //        });
-                    //    });
+                            });
+                    });
 
                 });
             })
@@ -85,11 +86,12 @@ document.addEventListener("DOMContentLoaded", function () {
         event.preventDefault(); // prevents page reload
 
         const user = userInput.value.trim().toLowerCase();
+        const password = userPassword.value;
         console.log("Submitted user:", user);
         const response = fetch("http://127.0.0.1:5000/user", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ "name": user })
+            body: JSON.stringify({ "name": user , "password": password })
         })
             .then(response => {
                 return response.json().then(data => {
@@ -113,6 +115,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             });
         userInput.value = "";
+        userPassword.value = "";
 
     });
 

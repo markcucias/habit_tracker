@@ -35,7 +35,8 @@ def create_tables():
     cur.execute('''
         CREATE TABLE IF NOT EXISTS users(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT UNIQUE NOT NULL        
+            name TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL
         );
     ''')
 
@@ -46,12 +47,12 @@ def create_tables():
 
 
 # Functions for working with (inserting and getting) users
-def insert_user(name):
+def insert_user(name, password):
     db = get_connection()
     cur = db.cursor()
     cur.execute('''
-        INSERT INTO users(name) VALUES (?);
-    ''', (name,))
+        INSERT INTO users(name, password) VALUES (?, ?);
+    ''', (name, password))
     db.commit()
     db.close()
 
@@ -205,3 +206,28 @@ def delete_habit(name, user_id):
     db.commit()
     db.close()
     return
+
+
+def delete_user(user_id):
+    db = get_connection()
+    try:
+        cur = db.cursor()
+        
+        cur.execute('''
+            DELETE FROM checkins
+            WHERE user_id = ?
+        ''', (user_id,))
+
+        cur.execute('''
+            DELETE FROM habits
+            WHERE user_id = ?
+        ''', (user_id,))
+
+        cur.execute('''
+            DELETE FROM users
+            WHERE id = ?
+        ''', (user_id,))
+        
+        db.commit()
+    finally:
+        db.close()

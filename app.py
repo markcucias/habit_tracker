@@ -4,6 +4,8 @@ import app
 from flask import Flask, request, jsonify, render_template
 from datetime import datetime
 import db
+from werkzeug.security import generate_password_hash, check_password_hash
+
 
 app = Flask(__name__)
 
@@ -16,7 +18,7 @@ def home():
 
 @app.route("/home", methods = ["GET"])
 def home1():
-    return render_template("index.html")
+    return render_template("habit.html")
 
 # Functions for /user
 
@@ -25,15 +27,19 @@ def home1():
 def add_user():
     data = request.get_json()
     new_user = data.get("name")
+    password = data.get("password")
     if not new_user:
-        return jsonify({"error": "The user is invalid (most likely empty)"}), 400
+        return jsonify({"error": "The user field is empty"}), 400
+    if not password:
+        return jsonify({"error": "The password field is empty"}), 400
     new_user = new_user.strip().lower()
 
     user = db.get_user_by_name(new_user)
     if user:
         return jsonify({"error": "The user already exists"}), 400
-
-    db.insert_user(new_user)
+    
+    hash_password = generate_password_hash(password)
+    db.insert_user(new_user, hash_password)
     return jsonify({"message": f"The user '{new_user}' was added successfully"}), 201
 
 
@@ -42,6 +48,20 @@ def add_user():
 def retrieve_users():
     users = [row[0] for row in db.get_users()]
     return jsonify({"users": users}), 200
+
+
+# DELETE
+@app.route("/user", methods = ["DELETE"])
+def delete_user():
+    data = request.get_json()
+    name = data.get("user")
+   
+    user_id = check_get_user_id(name)
+    if user_id is None:
+        return jsonify({"error": "The user name is invalid"}), 400
+    else:
+        db.delete_user(user_id)
+    return jsonify({"message": f"User '{name}' was successfuly deleted"}), 200
 
 
 
