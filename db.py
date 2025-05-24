@@ -68,6 +68,18 @@ def get_users():
     return rows
 
 
+def get_hash_for_user(id):
+    db = get_connection()
+    cur = db.cursor()
+    res = cur.execute('''
+        SELECT password FROM users
+        WHERE id = ?;
+    ''', (id, ))
+    hash_res = res.fetchone()
+    db.close()
+    return hash_res
+
+
 
 
 

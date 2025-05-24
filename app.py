@@ -1,13 +1,14 @@
 from collections import defaultdict
 
 import app
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, session
 from datetime import datetime
 import db
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
 app = Flask(__name__)
+app.secret_key = "supersecretkey"
 
 
 # Home function
@@ -19,6 +20,46 @@ def home():
 @app.route("/home", methods = ["GET"])
 def home1():
     return render_template("habit.html")
+
+
+@app.route("/password", methods = ["GET"])
+def home2():
+    return render_template("password.html")
+
+
+
+# Functions for /login
+
+# POST
+@app.route("/login", methods=["POST"])
+def login():
+    data = request.get_json()
+    username = data.get("user")
+    password = data.get("password")
+
+    user_id = check_get_user_id(username)
+    if user_id is None:
+        return jsonify({"error": "User does not exist"}), 400
+
+    hashed_password = db.get_hash_for_user(user_id)
+    if not hashed_password:
+        return jsonify({"error": "Password not found"}), 400
+
+    if check_password_hash(hashed_password[0], password):
+        session["user_id"] = user_id
+        session["username"] = username
+        return jsonify({"message": "Login successful"}), 200
+    else:
+        return jsonify({"error": "Invalid password"}), 400
+
+
+
+@app.route("/logout", methods=["POST"])
+def logout():
+    session.clear()
+    return jsonify({"message": "Logged out"}), 200
+
+
 
 # Functions for /user
 
@@ -73,9 +114,8 @@ def delete_user():
 def add_habit():
     data = request.get_json()
     new_habit = data.get("name")
-    name = data.get("user")
     
-    user_id = check_get_user_id(name)
+    user_id = session.get("user_id")
     if user_id is None:
         return jsonify({"error": "The user name is invalid"}), 400
     
@@ -95,7 +135,7 @@ def add_habit():
             return jsonify({"error": "The habit already exists"}), 400
 
     db.insert_habit(new_habit, user_id)
-    return jsonify({"message": f"The habit '{new_habit}' was added successfully for the user {name}"}), 201
+    return jsonify({"message": f"The habit '{new_habit}' was added successfully for the user {session.get('username')}"}), 201
 
 
 # GET
@@ -106,21 +146,21 @@ def retrieve_habits():
     user_id = check_get_user_id(name)
     if user_id is None:
         return jsonify({"error": "The user name is invalid"}), 400
-    
+
     habits = [row[0] for row in db.get_all_active_habits(user_id)]
     return jsonify({"habits": habits}), 200
+
 
 # DELETE
 @app.route("/habit", methods = ["DELETE"])
 def delete_habit_route():
     data = request.get_json()
-    name = data.get("user")
     habit = data.get("name")
 
     if not habit:
         return jsonify({"error": "Invalid input: empty habit"}), 400
     
-    user_id = check_get_user_id(name)
+    user_id = session.get("user_id")
     if user_id is None:
         return jsonify({"error": "The user name is invalid"}), 400
     
@@ -144,9 +184,8 @@ def delete_habit_route():
 def register_habit():
     data = request.get_json()
     habit = data.get("name")
-    name = data.get("user")
     
-    user_id = check_get_user_id(name)
+    user_id = session.get("user_id")
     if user_id is None:
         return jsonify({"error": "The user name is invalid"}), 400
 
@@ -156,7 +195,7 @@ def register_habit():
 
     habit_row = db.get_habit_by_name(habit, user_id)
     if not habit_row:
-        return jsonify({"error": f"The habit '{habit}' does not exist for {name}. Please add it first using /habit."}), 400
+        return jsonify({"error": f"The habit '{habit}' does not exist for {session.get('username')}. Please add it first using /habit."}), 400
 
     habit_id = habit_row[0]
 
@@ -166,15 +205,14 @@ def register_habit():
 
     db.insert_checkin(habit_id, user_id, date)
     return jsonify({
-        "message": f"The habit '{habit}' was checked in successfully for {name} on {date}"
+        "message": f"The habit '{habit}' was checked in successfully for {session.get('username')} on {date}"
     }), 201
 
 
 # GET
 @app.route("/checkin", methods = ["GET"])
 def retrieve_checkin():
-    name = request.args.get("user")
-    user_id = check_get_user_id(name)
+    user_id = session.get("user_id")
     if user_id is None:
         return jsonify({"error": "The user name is invalid"}), 400
     
@@ -190,13 +228,12 @@ def retrieve_checkin():
 @app.route("/checkin/clear", methods = ["DELETE"])
 def clear_checkins():
     data = request.get_json()
-    name = data.get("user")
-    user_id = check_get_user_id(name)
+    user_id = session.get("user_id")
     if user_id is None:
         return jsonify({"error": "The user name is invalid"}), 400
     
     db.delete_checkins(user_id)
-    return jsonify({"message": f"The checkin history was successfuly deleted for {name}"}), 200
+    return jsonify({"message": f"The checkin history was successfuly deleted for {session.get('username')}"}), 200
 
 
 
@@ -205,8 +242,7 @@ def clear_checkins():
 # Function for the progress bar
 @app.route("/progress", methods = ["GET"])
 def get_progress():
-    name = request.args.get("user")
-    user_id = check_get_user_id(name)
+    user_id = session.get("user_id")
     if user_id is None:
         return jsonify({"error": "The user name is invalid"}), 400
     
@@ -222,8 +258,7 @@ def get_progress():
 
 @app.route("/stats", methods=["GET"])
 def get_stats():
-    name = request.args.get("user")
-    user_id = check_get_user_id(name)
+    user_id = session.get("user_id")
     if user_id is None:
         return jsonify({"error": "The user name is invalid"}), 400
     

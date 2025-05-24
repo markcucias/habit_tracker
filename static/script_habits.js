@@ -6,13 +6,25 @@ document.addEventListener("DOMContentLoaded", function () {
   const userButton = document.getElementById("switchUser");
   const username = localStorage.getItem("user");
 
+  const capitalize = str => str.charAt(0).toUpperCase() + str.slice(1);
+  const welcomeUsername = capitalize(localStorage.getItem("user"));
+  const welcome = document.getElementById("welcomeText");
+  welcome.textContent = welcomeUsername + ", welcome to Habit Tracker!";
+
+
   userButton.addEventListener("click", function () {
     localStorage.removeItem("user");
+    fetch("http://127.0.0.1:5000/logout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({})
+    });
     location.href = "http://127.0.0.1:5000/";
   });
 
   function load_habits() {
-    fetch(`http://127.0.0.1:5000/habit?user=${username}`, { method: "GET" })
+    const username = localStorage.getItem("user");
+    fetch(`/habit?user=${encodeURIComponent(username)}`, { method: "GET" })
       .then(response => response.json())
       .then(data => {
         const habits = data.habits;
@@ -128,7 +140,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
   function load_progress_bar() {
-    fetch(`http://127.0.0.1:5000/progress?user=${username}`, { method: "GET" })
+    fetch(`http://127.0.0.1:5000/progress`, { method: "GET" })
       .then(response => response.json())
       .then(data => {
         const completed = data.completed;
@@ -155,7 +167,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function load_graph() {
-    fetch(`http://127.0.0.1:5000/stats?user=${username}`, { method: "GET" })
+    fetch(`http://127.0.0.1:5000/stats`, { method: "GET" })
       .then(response => response.json())
       .then(data => {
         const labels = Object.keys(data).sort(); // dates
@@ -202,7 +214,7 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   function load_checkin_for_date(date) {
-    fetch(`http://127.0.0.1:5000/checkin?user=${username}`, { method: "GET" })
+    fetch(`http://127.0.0.1:5000/checkin`, { method: "GET" })
       .then(response => response.json())
       .then(data => {
         const history = document.getElementById("checkinHistory");
@@ -256,7 +268,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
   function load_all_checkin() {
-    fetch(`http://127.0.0.1:5000/checkin?user=${username}`, { method: "GET" })
+    fetch(`http://127.0.0.1:5000/checkin`, { method: "GET" })
       .then(response => response.json())
       .then(data => {
         const history = document.getElementById("checkinHistory");
@@ -325,7 +337,7 @@ document.addEventListener("DOMContentLoaded", function () {
     event.preventDefault();
     fetch("http://127.0.0.1:5000/checkin/clear", {
       method: "DELETE",
-      headers: {"Content-Type": "application/json"},
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ "name": habit, "user": username })
     })
       .then(response => {
@@ -349,7 +361,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const response = fetch("http://127.0.0.1:5000/habit", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ "name": habit, "user": username})
+      body: JSON.stringify({ "name": habit, "user": username })
     })
       .then(response => {
         return response.json().then(data => {

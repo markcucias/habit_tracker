@@ -57,14 +57,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     btn.addEventListener("click", function () {
                         localStorage.setItem("user", user);
-                        location.href = "http://127.0.0.1:5000/home";
+                        location.href = "http://127.0.0.1:5000/password";
                     });
 
                     dlt.addEventListener("click", function () {
                         fetch("http://127.0.0.1:5000/user", {
                             method: "DELETE",
                             headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ "user":  user})
+                            body: JSON.stringify({ "user": user })
                         })
                             .then(response => {
                                 if (response.ok) {
@@ -91,7 +91,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const response = fetch("http://127.0.0.1:5000/user", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ "name": user , "password": password })
+            body: JSON.stringify({ "name": user, "password": password })
         })
             .then(response => {
                 return response.json().then(data => {
