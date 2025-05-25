@@ -1,15 +1,19 @@
 from collections import defaultdict
-
 import app
+import os
 from flask import Flask, request, jsonify, render_template, session
 from datetime import datetime
 import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
+from dotenv import load_dotenv
+load_dotenv()
+
 
 
 app = Flask(__name__)
-app.secret_key = "supersecretkey"
+app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key")
+
 
 def login_required(f):
     @wraps(f)
@@ -240,7 +244,6 @@ def retrieve_checkin():
 @app.route("/checkin/clear", methods = ["DELETE"])
 @login_required
 def clear_checkins():
-    data = request.get_json()
     user_id = session.get("user_id")
     if user_id is None:
         return jsonify({"error": "The user name is invalid"}), 400

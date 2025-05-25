@@ -334,21 +334,35 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.getElementById("clear").addEventListener("click", function (event) {
     event.preventDefault();
-    fetch("http://127.0.0.1:5000/checkin/clear", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ "name": habit, "user": username })
-    })
-      .then(response => {
-        if (response.ok) {
+  
+    fetch("/checkin/clear", { method: "DELETE" })
+      .then(response => response.json().then(data => ({ status: response.status, body: data })))
+      .then(({ status, body }) => {
+        const history = document.getElementById("checkinHistory");
+  
+        if (status === 200) {
           load_habits();
           load_all_checkin();
           load_graph();
+  
+          const message = document.createElement("div");
+          message.textContent = body.message || "History cleared";
+          message.style.color = "green";
+          message.style.textAlign = "right";
+          message.style.marginBottom = "10px";
+          message.style.fontSize = "0.9rem";
+  
+          history.prepend(message);
+          setTimeout(() => {
+            message.remove();
+          }, 2500);
         } else {
-          alert("Something went wrong, please try clearing the history again");
+          alert(body.error || "Something went wrong, please try clearing the history again");
         }
       });
   });
+  
+
 
 
 
