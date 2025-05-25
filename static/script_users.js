@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     function load_users() {
-        fetch("http://127.0.0.1:5000/user", { method: "GET" })
+        fetch("/user", { method: "GET" })
             .then(response => response.json())
             .then(data => {
                 const users = data.users;
@@ -58,11 +58,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     btn.addEventListener("click", function () {
                         localStorage.setItem("user", user);
-                        location.href = "http://127.0.0.1:5000/password";
+                        location.href = "/password";
                     });
 
                     dlt.addEventListener("click", function () {
-                        fetch("http://127.0.0.1:5000/user", {
+                        fetch("/user", {
                             method: "DELETE",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({ "user": user })
@@ -89,7 +89,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const user = userInput.value.trim().toLowerCase();
         const password = userPassword.value;
         console.log("Submitted user:", user);
-        const response = fetch("http://127.0.0.1:5000/user", {
+        const response = fetch("/user", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ "name": user, "password": password })
