@@ -5,10 +5,19 @@ from flask import Flask, request, jsonify, render_template, session
 from datetime import datetime
 import db
 from werkzeug.security import generate_password_hash, check_password_hash
+from functools import wraps
 
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if "username" not in session:
+            return jsonify({"error": "Not logged in"}), 401
+        return f(*args, **kwargs)
+    return decorated_function
 
 
 # Home function
@@ -111,6 +120,7 @@ def delete_user():
 
 # POST
 @app.route("/habit", methods=["POST"])
+@login_required
 def add_habit():
     data = request.get_json()
     new_habit = data.get("name")
@@ -140,10 +150,9 @@ def add_habit():
 
 # GET
 @app.route("/habit", methods=["GET"])
+@login_required
 def retrieve_habits():
-    name = request.args.get("user")
-    
-    user_id = check_get_user_id(name)
+    user_id = session.get("user_id")
     if user_id is None:
         return jsonify({"error": "The user name is invalid"}), 400
 
@@ -153,6 +162,7 @@ def retrieve_habits():
 
 # DELETE
 @app.route("/habit", methods = ["DELETE"])
+@login_required
 def delete_habit_route():
     data = request.get_json()
     habit = data.get("name")
@@ -181,6 +191,7 @@ def delete_habit_route():
 
 # POST
 @app.route("/checkin", methods = ["POST"])
+@login_required
 def register_habit():
     data = request.get_json()
     habit = data.get("name")
@@ -211,6 +222,7 @@ def register_habit():
 
 # GET
 @app.route("/checkin", methods = ["GET"])
+@login_required
 def retrieve_checkin():
     user_id = session.get("user_id")
     if user_id is None:
@@ -226,6 +238,7 @@ def retrieve_checkin():
 
 # DELETE
 @app.route("/checkin/clear", methods = ["DELETE"])
+@login_required
 def clear_checkins():
     data = request.get_json()
     user_id = session.get("user_id")
@@ -241,6 +254,7 @@ def clear_checkins():
 
 # Function for the progress bar
 @app.route("/progress", methods = ["GET"])
+@login_required
 def get_progress():
     user_id = session.get("user_id")
     if user_id is None:
@@ -257,6 +271,7 @@ def get_progress():
 
 
 @app.route("/stats", methods=["GET"])
+@login_required
 def get_stats():
     user_id = session.get("user_id")
     if user_id is None:

@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
+    event.preventDefault();
     const userList = document.getElementById("userList");
     const userInput = document.getElementById("newUserInput");
     const userPassword = document.getElementById("newUserPassword");
@@ -103,13 +104,11 @@ document.addEventListener("DOMContentLoaded", function () {
                         }, 2500)
                         load_users();
                     } else {
-                        return response.json().then(data => {
-                            message.textContent = data.error || "Something went wrong";
-                            message.style.color = "red";
-                            setTimeout(() => {
-                                message.textContent = "";
-                            }, 2500)
-                        });
+                        message.textContent = data.error || "Something went wrong";
+                        message.style.color = "red";
+                        setTimeout(() => {
+                            message.textContent = "";
+                        }, 2500)
                     }
                 });
 

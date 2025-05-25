@@ -23,8 +23,7 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   function load_habits() {
-    const username = localStorage.getItem("user");
-    fetch(`/habit?user=${encodeURIComponent(username)}`, { method: "GET" })
+    fetch(`/habit`, { method: "GET" })
       .then(response => response.json())
       .then(data => {
         const habits = data.habits;
@@ -375,13 +374,11 @@ document.addEventListener("DOMContentLoaded", function () {
             load_habits();
             load_all_checkin();
           } else {
-            return response.json().then(data => {
-              message.textContent = data.error || "Something went wrong";
-              message.style.color = "red";
-              setTimeout(() => {
-                message.textContent = "";
-              }, 2500)
-            });
+            message.textContent = data.error || "Something went wrong";
+            message.style.color = "red";
+            setTimeout(() => {
+              message.textContent = "";
+            }, 2500)
           }
         });
 
