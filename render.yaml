@@ -1,9 +1,7 @@
 services:
   - type: web
     name: habit-tracker
-    runtime: python
+    env: python
     buildCommand: ""
     startCommand: gunicorn app:app
-    envVars:
-      - key: FLASK_ENV
-        value: production
+    autoDeploy: true
