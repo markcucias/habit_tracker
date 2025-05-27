@@ -3,6 +3,9 @@
 This is a simple full-stack habit tracker web app built with **Flask** (Python).  
 It allows users to **create accounts with passwords**, **track daily habits**, and **see progress** with charts and check-in history.
 
+You can acces it by this link: 
+https://habit-tracker-2xpu.onrender.com
+
 ---
 
 ## Technologies Used
